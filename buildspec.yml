@@ -9,10 +9,10 @@ env:
 phases:
     pre_build:
         commands:
-            - sed -i "s/API_KEY_PLACEHOLDER/$API_KEY/g" template.yaml
-            - sed -i "s/CERTIFICATE_ARN_PLACEHOLDER/$CERTIFICATE_ARN/g" template.yaml
-            - sed -i "s/ROUTE53_ZONE_ID_PLACEHOLDER/$ROUTE53_ZONE_ID/g" template.yaml
-            - sed -i "s/S3_BUCKET_ID_PLACEHOLDER/$S3_BUCKET_ID/g" samconfig.toml
+            - sed -i "s#API_KEY_PLACEHOLDER#$API_KEY#g" template.yaml
+            - sed -i "s#CERTIFICATE_ARN_PLACEHOLDER#$CERTIFICATE_ARN#g" template.yaml
+            - sed -i "s#ROUTE53_ZONE_ID_PLACEHOLDER#$ROUTE53_ZONE_ID#g" template.yaml
+            - sed -i "s#S3_BUCKET_ID_PLACEHOLDER#$S3_BUCKET_ID#g" samconfig.toml
     build:
         commands:
             - 'sam deploy --no-confirm-changeset'
