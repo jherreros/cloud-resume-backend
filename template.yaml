@@ -19,7 +19,7 @@ Resources:
         CertificateArn: CERTIFICATE_ARN_PLACEHOLDER
         EndpointConfiguration: EDGE
         Route53:
-          HostedZoneId: ROUTE53_ZONE_ID
+          HostedZoneId: ROUTE53_ZONE_ID_PLACEHOLDER
 
   ApiKey: 
     Type: AWS::ApiGateway::ApiKey
