@@ -1,0 +1,27 @@
+version: 0.2
+env:
+    parameter-store:
+        API_KEY: /CodeBuild/API_KEY
+        CERTIFICATE_ARN: /CodeBuild/CERTIFICATE_ARN
+        ROUTE53_ZONE_ID: /CodeBuild/ROUTE53_ZONE_ID
+        S3_BUCKET_ID: /CodeBuild/S3_BUCKET_ID
+
+phases:
+    pre_build:
+        commands:
+            - sed -i "s/API_KEY_PLACEHOLDER/$API_KEY/g" template.yaml
+            - sed -i "s/CERTIFICATE_ARN_PLACEHOLDER/$CERTIFICATE_ARN/g" template.yaml
+            - sed -i "s/ROUTE53_ZONE_ID_PLACEHOLDER/$ROUTE53_ZONE_ID/g" template.yaml
+            - sed -i "s/S3_BUCKET_ID_PLACEHOLDER/$S3_BUCKET_ID/g" samconfig.toml
+    build:
+        commands:
+            - 'sam deploy --no-confirm-changeset'
+artifacts:
+    base-directory: public
+    files:
+        - '**/*'
+    discard-paths: no
+cache:
+    paths:
+        - '.cache/*'
+        - 'public/*'

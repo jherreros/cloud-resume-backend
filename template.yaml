@@ -1,0 +1,100 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+  UsersCountApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Cors:
+        AllowMethods: "'GET, OPTIONS'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'*'"
+        MaxAge: "'600'"
+        AllowCredentials: False
+      Auth:
+        ApiKeyRequired: true
+      Domain:
+        DomainName: api.juanherreros.com
+        CertificateArn: CERTIFICATE_ARN_PLACEHOLDER
+        EndpointConfiguration: EDGE
+        Route53:
+          HostedZoneId: ROUTE53_ZONE_ID
+
+  ApiKey: 
+    Type: AWS::ApiGateway::ApiKey
+    Properties: 
+      Name: !Join ["", [{"Ref": "AWS::StackName"}, "-apikey"]]
+      Enabled: true
+      GenerateDistinctId: false
+      Value: API_KEY_PLACEHOLDER
+      StageKeys:
+        - RestApiId: !Ref UsersCountApi
+          StageName: Prod
+
+  ApiUsagePlan:
+    Type: "AWS::ApiGateway::UsagePlan"
+    Properties:
+      ApiStages: 
+        - ApiId: !Ref UsersCountApi
+          Stage: Prod     
+      Description: !Join [" ", [{"Ref": "AWS::StackName"}, "usage plan"]]
+      Quota:
+        Limit: 1000
+        Period: MONTH
+      UsagePlanName: !Join ["", [{"Ref": "AWS::StackName"}, "-usage-plan"]]
+
+  ApiUsagePlanKey:
+    Type: "AWS::ApiGateway::UsagePlanKey"
+    DependsOn: 
+      - UsersCountApi
+    Properties:
+      KeyId: !Ref ApiKey
+      KeyType: API_KEY
+      UsagePlanId: !Ref ApiUsagePlan
+  
+  UsersCountFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: users_counter/
+      Handler: app.getCount
+      Runtime: python3.7
+      Events:
+        UsersCount:
+          Type: Api
+          Properties:
+            Path: /count/{userId}
+            Method: get
+            RestApiId: !Ref UsersCountApi
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - 'dynamodb:DeleteItem'
+                - 'dynamodb:GetItem'
+                - 'dynamodb:PutItem'
+                - 'dynamodb:UpdateItem'
+              Resource:
+                'Fn::Join':
+                  - ''
+                  - - 'arn:aws:dynamodb:'
+                    - Ref: 'AWS::Region'
+                    - ':'
+                    - Ref: 'AWS::AccountId'
+                    - ':table/usersTable'
+
+  usersTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      TableName: usersTable
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
